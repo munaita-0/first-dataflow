@@ -154,7 +154,7 @@ public class WindowedWordCountOriginal {
     @Default.InstanceFactory(DefaultToCurrentSystemTime.class)
     Long getMinTimestampMillis();
     void setMinTimestampMillis(Long value);
-
+;
     @Description("Maximum randomly assigned timestamp, in milliseconds-since-epoch")
     @Default.InstanceFactory(DefaultToMinTimestampPlusOneHour.class)
     Long getMaxTimestampMillis();
