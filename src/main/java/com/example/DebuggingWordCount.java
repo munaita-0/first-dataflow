@@ -17,6 +17,8 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.values.TypeDescriptors;
 
 
 public class DebuggingWordCount {
@@ -58,15 +60,18 @@ public class DebuggingWordCount {
           .as(WordCountOptions.class);
         Pipeline p = Pipeline.create(options);
 
-        PCollection<KV<String, Long>> filteredWords = 
+        // PCollection<KV<String, Long>> filteredWords = 
           p.apply("ReadLines", TextIO.read().from(options.getInputFile()))
            .apply(new WordCount.CountWords())
-           .apply(ParDo.of(new FilterTextFn(options.getFilterPattern())));
+           .apply(ParDo.of(new FilterTextFn(options.getFilterPattern())))
+           .apply(MapElements.into(TypeDescriptors.strings())
+            .via((KV<String, Long> wordCount) -> wordCount.getKey() + ": " + wordCount.getValue()))
+           .apply(TextIO.write().to(options.getOutput()));
     
-        List<KV<String, Long>> expectedResults = Arrays.asList(
-            KV.of("Flourish", 3L),
-            KV.of("stomach", 1L));
-        PAssert.that(filteredWords).containsInAnyOrder(expectedResults);
+        // List<KV<String, Long>> expectedResults = Arrays.asList(
+        //     KV.of("Flourish", 3L),
+        //     KV.of("stomach", 1L));
+        // PAssert.that(filteredWords).containsInAnyOrder(expectedResults);
 
         p.run().waitUntilFinish();
     }
