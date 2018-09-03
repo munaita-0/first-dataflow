@@ -3,9 +3,10 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.transforms.Sum;
+import org.apache.beam.sdk.values.PCollection;
+
 
 /**
  * Created by suzuki_shogo on 2018/07/29.
@@ -13,31 +14,30 @@ import org.apache.beam.sdk.values.KV;
  */
 public class CombineExcercise {
 
-    static class SplitWordsAndMakeKVFn extends DoFn<String, KV<String, Integer>> {
+    static class TransformTypeFromStringToInteger extends DoFn<String, Integer> {
         @ProcessElement
         public void processElement(ProcessContext c) {
-            String[] words = c.element().split(",");
-            c.output(KV.of(words[0], Integer.parseInt(words[1])));
+            c.output(Integer.parseInt(c.element()));
         }
     }
 
-    static class TransTypeFromKVAndMakeStringFn extends DoFn<KV<String, Iterable<Integer>>, String> {
+    static class TransformTypeFromIntegerToString extends DoFn<Integer, String> {
         @ProcessElement
         public void processElement(ProcessContext c) {
             c.output(String.valueOf(c.element()));
         }
     }
 
-    private static final String INPUT_FILE_PATH = "./input_files/group_by_sample.txt";
-    private static final String OUTPUT_FILE_PATH = "./output_files/group_by_sample.txt";
+    private static final String INPUT_FILE_PATH = "./input_files/combine_by_sample.txt";
+    private static final String OUTPUT_FILE_PATH = "./output_files/combine_by_sample.txt";
 
     public static void main(String[] args) {
         Pipeline pipeline = Pipeline.create(PipelineOptionsFactory.create());
-        pipeline.apply(TextIO.read().from(INPUT_FILE_PATH))
-                .apply(ParDo.of(new SplitWordsAndMakeKVFn()))
-                .apply(GroupByKey.<String, Integer>create())
-                .apply(ParDo.of(new TransTypeFromKVAndMakeStringFn()))
-                .apply(TextIO.write().to(OUTPUT_FILE_PATH));
+        PCollection<String> lines = pipeline.apply(TextIO.read().from(INPUT_FILE_PATH));
+        PCollection<Integer> integerPCollection = lines.apply(ParDo.of(new TransformTypeFromStringToInteger()));
+        PCollection<Integer> sum = integerPCollection.apply(Sum.integersGlobally().withoutDefaults());
+        PCollection<String> numString = sum.apply(ParDo.of(new TransformTypeFromIntegerToString()));
+        numString.apply(TextIO.write().to(OUTPUT_FILE_PATH));
         pipeline.run().waitUntilFinish();
     }
 }
