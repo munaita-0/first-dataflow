@@ -7,11 +7,12 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Sum;
-import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
-import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 
+/**
+ * reference: https://qiita.com/Sekky0905/items/4596660455a7a2af5906
+ */
 public class CombinePerKey {
   private static final String INPUT_FILE_PATH = "./input_files/kv_combine_by_sample.txt";
   private static final String OUTPUT_FILE_PATH = "./output_files/kv_combine_by_sample.txt";
